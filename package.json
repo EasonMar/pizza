@@ -1,0 +1,28 @@
+{
+  "name": "hwpizza",
+  "version": "1.0.0",
+  "description": "A tool to cut a web-based PPT into short images as you wish.",
+  "source": "popup.js",
+  "main": "dist/main.js",
+  "scripts": {
+    "dev": "rd /s/q localServe && mkdir localServe && fis3 server start --root ./localServe --port 1234 --type node & fis3 release -wL",
+    "build": "rd /s/q dist && mkdir dist && fis3 release prod -d ./dist",
+    "clean": "fis3 release -c",
+    "stop": "fis3 server stop"
+  },
+  "keywords": [
+    "extensions"
+  ],
+  "author": "Eason@zone",
+  "license": "ISC",
+  "devDependencies": {
+    "babel-plugin-transform-remove-strict-mode": "0.0.2",
+    "fis-parser-babel-6.x": "^6.24.1",
+    "fis-parser-node-sass": "^1.0.7",
+    "fis3": "^3.4.44",
+    "fis3-optimizer-dfy-html-minifier": "^1.0.1",
+    "fis3-postpackager-loader": "^2.1.11",
+    "fis3-preprocessor-autoprefixer": "^0.1.1",
+    "uglify-js": "^3.17.4"
+  }
+}
