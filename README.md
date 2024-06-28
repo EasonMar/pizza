@@ -9,7 +9,7 @@ A tool to cut a long web page into short images as you wish, especially applied 
     "matches": ["*://*/*"],
     {
       "matches": ["*://*/*"],
-      "js": ["assets/js/content.js", "libs/jszip.min.js"]
+      "js": ["libs/jquery.slim.min.js", "assets/js/content.js"] // 被依赖的包要放在数组前面
     },{
        "matches": ["*://*/*"],
        "css": ["assets/styles/reset.css"]
@@ -18,7 +18,7 @@ A tool to cut a long web page into short images as you wish, especially applied 
     // 原配置
     {
       "matches": ["*://developer.huawei.com/*"],
-      "js": ["assets/js/content.js", "libs/jszip.min.js"]
+      "js": ["libs/jquery.slim.min.js", "assets/js/content.js"]
     },{
       "matches": ["*://developer.huawei.com/config/commonResource/pdfjsToCommon/pdf/web/viewer.html"],
       "css": ["assets/styles/reset.css"]
@@ -54,12 +54,12 @@ A tool to cut a long web page into short images as you wish, especially applied 
    - 表示扩展程序试图建立与内容脚本的通信通道，但内容脚本并不存在或未准备好接收消息。
    - 所以在 popup 初始化时，如果有 runtime.sendMessage 操作...需要做一个错误处理...捕捉一下错误
 
-
 ## Todo list
-  - ~~每个参考线可单独调整，更加灵活的切图配置~~
-  - ~~hwcutter，截图的PPT结果应该先放到一个展示页，用户可以选择性下载，也可以全部打包下载~~
-  - 集成图片编辑功能
-  - 显示处理进度
-  - 可添加、删除参考线
-  - 不均匀调整模式（可随时切换）
-  - 增加垂直参考线：水平截图区域可选择
+
+- ~~每个参考线可单独调整，更加灵活的切图配置~~
+- ~~hwcutter，截图的 PPT 结果应该先放到一个展示页，用户可以选择性下载，也可以全部打包下载~~
+- 集成图片编辑功能
+- 显示处理进度
+- 可添加、删除参考线
+- 不均匀调整模式（可随时切换）
+- 增加垂直参考线：水平截图区域可选择

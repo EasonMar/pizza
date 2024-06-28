@@ -8,43 +8,73 @@ let winW = window.innerWidth; // 窗口内容宽度
 let ratio = 1; // 截图尺寸与视窗尺寸的转换比例 image.width / winW;
 let winHS = winH; // 转换比例后的窗口内容高度
 let winWS = winW; // 转换比例后窗口内容宽度
+let adMode = "evenly"; // evenly: 均匀模式、afterward: 后向调整模式、freely: 自由调整模式
+
+function query(query) {
+  return document.querySelector(query);
+}
+
+function queryAll(query) {
+  return document.querySelectorAll(query);
+}
+
+function create(tag) {
+  return document.createElement(tag);
+}
+
+function docBind(action, fn) {
+  document.addEventListener(action, fn);
+}
+
+function docUnbind(action, fn) {
+  document.removeEventListener(action, fn);
+}
+
+function appendBody(ele) {
+  document.body.appendChild(ele);
+}
 
 function createBaseRuler() {
-  const oldBaseRuler = document.querySelector(".baseRuler");
-  if (oldBaseRuler) document.body.removeChild(oldBaseRuler);
+  const oldBaseRuler = query(".baseRuler");
+  if (oldBaseRuler) oldBaseRuler.remove();
 
-  const ruler = document.createElement("div");
-  ruler.className = "ruler baseRuler";
-  baseRuler = ruler.cloneNode(false);
+  // 创建基准参考线
+  const baseRuler = create("div");
+  baseRuler.className = "ruler baseRuler";
 
-  // 将标尺添加到页面中
-  document.body.appendChild(baseRuler);
+  // 添加子元素
+  const $drag = $(`<span class="rulerBtn drag">drag</span>`);
+  const $add = $(`<span class="rulerBtn add">add</span>`);
+  $(baseRuler).append($drag, $add);
 
-  // 监听鼠标移动事件，显示标尺在页面中的位置信息
+  // 将参考线添加到页面中
+  appendBody(baseRuler);
+
+  // 监听鼠标移动事件，显示参考线在页面中的位置信息
   // Tips: 使用bind方法，显式地传递参数给处理函数, 这些参数会插入到调用新函数时传入的参数的前面
   const bindMove = move.bind(null, baseRuler);
-  document.addEventListener("mousemove", bindMove);
+  docBind("mousemove", bindMove);
 
   // 将click事件绑定在baseRuler本身，解决点击页面中的“放置参考线”按钮导致卡死的问题...
   baseRuler.addEventListener(
     "click",
     () => {
-      document.removeEventListener("mousemove", bindMove);
+      docUnbind("mousemove", bindMove);
 
       createAddRuler(baseRuler);
       createConfirm();
 
       // 移动函数...
-      baseRuler.onmousedown = function (e) {
-        const posY = e.clientY - baseRuler.offsetTop;
-        document.onmousemove = function (e) {
-          setRuler(baseRuler, e.clientY - posY);
+      $drag.on("mousedown", (ed) => {
+        const posY = ed.clientY - baseRuler.offsetTop;
+        document.onmousemove = function (em) {
+          setRuler(baseRuler, em.clientY - posY);
         };
-        baseRuler.onmouseup = function () {
+        $drag.on("mouseup", () => {
           document.onmousemove = null;
           createAddRuler(baseRuler);
-        };
-      };
+        });
+      });
     },
     { once: true } // listener 会在其被调用之后自动移除
   );
@@ -55,45 +85,62 @@ function createAddRuler(baseRuler, step) {
 
   // 先删除旧的addRuler
   (function deleteOldRuler() {
-    const addrulers = Array.from(document.querySelectorAll(".addRuler"));
+    const addrulers = Array.from(queryAll(".addRuler"));
     addrulers.forEach((adr) => {
       document.body.removeChild(adr);
     });
   })();
 
   let rulerIndex = 0;
-  let rulerStep = 0; // 从baseRuler的位置开始画
+  let rulerStep = step;
 
   // 当最后一个ruler的位置靠近bodyHeight时, 停止循环
   while (bodyHeight - rulerStep >= 30) {
-    const addRuler = baseRuler.cloneNode(false);
+    const addRuler = baseRuler.cloneNode(true);
     addRuler.setAttribute("index", rulerIndex);
     addRuler.className = "ruler addRuler";
+
+    // delbtn
+    const $delBtn = $(`<span class="rulerBtn del">del</span>`);
+    $(addRuler).append($delBtn);
+
     const newY = +addRuler.getAttribute("Ydex") + rulerStep; // 初始的 Ydex 来自于 baseRuler
     setRuler(addRuler, newY);
 
-    // 移动函数...
-    addRuler.onmousedown = function (e) {
-      const originY = e.clientY;
-      const posY = e.clientY - addRuler.offsetTop;
-      document.onmousemove = function (e) {
-        setRuler(addRuler, e.clientY - posY);
+    // -------- Todo ---------
+    // 后续应该增加配置：均分模式、非均分模式、windowReSize也要动态调整参考线位置...
+
+    // drag event
+    const $dragEle = $(addRuler).find(".drag");
+    $dragEle.on("mousedown", (ed) => {
+      const originY = ed.clientY;
+      const posY = ed.clientY - addRuler.offsetTop;
+      document.onmousemove = function (em) {
+        setRuler(addRuler, em.clientY - posY);
       };
-      addRuler.onmouseup = function (e) {
+
+      $dragEle.on("mouseup", (eu) => {
         document.onmousemove = null;
 
-        // 通过当前ruler的偏移量/当前ruler与baseRuler的间隔，计算出baseRuler的偏移量，即step的偏移量，直接修改step
-        const index = +addRuler.getAttribute("index") || 1; // 当前 addRuler 与 baseRuler 的间隔
-        const stepDiff = (e.clientY - originY) / index;
-        const newStep = +baseRuler.getAttribute("Ydex") + stepDiff;
-        setRuler(baseRuler, newStep); // 设置新的step
-        createAddRuler(baseRuler); // 重新绘制addRuler
-        // -------- Todo ---------
-        // 后续应该增加配置：均分模式、非均分模式（涉及到windowSize也要动态调整
-      };
-    };
+        // 均匀模式下
+        if (adMode === "evenly") {
+          // 通过当前ruler的偏移量/当前ruler与baseRuler的间隔，计算出baseRuler的偏移量，即step的偏移量，直接修改step
+          const index = +addRuler.getAttribute("index") || 1; // 当前 addRuler 与 baseRuler 的间隔
+          const stepDiff = (eu.clientY - originY) / index;
+          const newStep = +baseRuler.getAttribute("Ydex") + stepDiff;
+          setRuler(baseRuler, newStep); // 设置新的step
+          createAddRuler(baseRuler); // 重新绘制addRuler
+        } else if (adMode === "afterward") {
+          // Todo- 按照给定的step, 对平移当前参考线后续的所有参考线...
+        }
+      });
+    });
 
-    document.body.appendChild(addRuler);
+    // del event
+    const $delEle = $(addRuler).find(".del");
+    $delEle.on("click", () => addRuler.remove());
+
+    appendBody(addRuler);
     rulerStep += step;
     rulerIndex++;
   }
@@ -107,9 +154,9 @@ function setRuler(ruler, y) {
 
 function createNavigator() {
   // 单例模式
-  if (document.querySelector(".navigator")) return false;
+  if (query(".navigator")) return false;
 
-  const nav = document.createElement("div");
+  const nav = create("div");
   nav.className = "navigator";
   const navTop = nav.cloneNode(false);
   const nextPage = nav.cloneNode(false);
@@ -148,20 +195,17 @@ function createNavigator() {
   });
 
   // 添加到页面中
-  document.body.appendChild(navTop);
-  document.body.appendChild(nextPage);
-  document.body.appendChild(prevPage);
-  document.body.appendChild(navBottom);
+  [navTop, nextPage, prevPage, navBottom].forEach((n) => appendBody(n));
 
   // 进入编辑态 ---- 增加一些留白 方便最后滚动到底
-  const htmldom = document.querySelector("html");
+  const htmldom = query("html");
   htmldom.style.paddingBottom = `${winH}px`;
   htmldom.style.backgroundColor = `black`;
 }
 
 function toggleActor() {
   // 已经创建了则不需要再创建...
-  let nav = document.querySelector(".navigator");
+  let nav = query(".navigator");
   if (nav) {
     const conf = nav.style.display === "block" ? "none" : "block";
     setDisplay(conf);
@@ -173,23 +217,23 @@ function toggleActor() {
 
 function createConfirm() {
   // 单例模式
-  if (document.querySelector(".confirm")) return false;
+  if (query(".confirm")) return false;
 
-  const confirm = document.createElement("div");
+  const confirm = create("div");
   confirm.className = "confirm";
   confirm.innerText = "开始截图";
-  document.body.appendChild(confirm);
+  appendBody(confirm);
   confirm.addEventListener("click", getPPTs);
 }
 
 function createRulerBtn() {
   // 单例模式
-  if (document.querySelector(".createRulerBtn")) return false;
+  if (query(".createRulerBtn")) return false;
 
-  const cruler = document.createElement("div");
+  const cruler = create("div");
   cruler.className = "createRulerBtn";
   cruler.innerText = "放置参考线";
-  document.body.appendChild(cruler);
+  appendBody(cruler);
   cruler.addEventListener("click", createBaseRuler);
 }
 
@@ -241,7 +285,7 @@ chrome.runtime.onMessage.addListener(async function (
     // 显隐各功能按键
     toggleActor();
   } else if (request.action === "ruler") {
-    // 创建标尺元素
+    // 创建参考线元素
     createBaseRuler();
     // 创建导航等工具
     createNavigator();
@@ -257,7 +301,7 @@ chrome.runtime.onMessage.addListener(async function (
   } else if (request.action === "setspeed") {
     captureSpeed = +request.speed;
   } else if (request.action === "init") {
-    const ruler = document.querySelector(".addRuler");
+    const ruler = query(".addRuler");
     const step = ruler ? +ruler.getAttribute("Ydex") : 0;
     sendResponse([step, captureSpeed]);
     return true;
@@ -276,10 +320,10 @@ function setDisplay(conf) {
     none: "hidden",
   };
   // NodeList 是一个类数组对象，并不直接支持像数组那样的 push 和 map 等方法
-  const nav = document.querySelectorAll(".navigator");
-  const ruler = document.querySelectorAll(".ruler");
-  const confirm = document.querySelector(".confirm");
-  const cruler = document.querySelector(".createRulerBtn");
+  const nav = queryAll(".navigator");
+  const ruler = queryAll(".ruler");
+  const confirm = query(".confirm");
+  const cruler = query(".createRulerBtn");
   [...nav, ...ruler, confirm, cruler].forEach((t) => {
     if (t) {
       t.style.display = conf;
@@ -336,7 +380,7 @@ async function paintPPT(screenshots) {
   await setRatio(screenshots[0]);
 
   // 获取参考线数据 --- 转化为imageSize
-  const addRuler = Array.from(document.querySelectorAll(".addRuler"));
+  const addRuler = Array.from(queryAll(".ruler"));
   const YArr = addRuler.map((r) => {
     return imageSize(+r.getAttribute("Ydex")).toFixed(2);
   });
@@ -424,7 +468,7 @@ function imageSize(winpx) {
 
 // 生成canvas
 function createCanvas(canH) {
-  const canvas = document.createElement("canvas");
+  const canvas = create("canvas");
   const ctx = canvas.getContext("2d");
   canvas.width = winWS;
   canvas.height = canH;

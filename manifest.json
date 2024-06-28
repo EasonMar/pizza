@@ -10,7 +10,7 @@
   "content_scripts": [
     {
       "matches": ["*://*/*"],
-      "js": ["assets/js/content.js", "libs/jszip.min.js"]
+      "js": ["libs/jquery.slim.min.js", "assets/js/content.js"]
     },
     {
       "matches": ["*://*/*"],
