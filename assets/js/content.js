@@ -237,13 +237,7 @@ chrome.runtime.onMessage.addListener(async function (
   sender,
   sendResponse
 ) {
-  if (
-    request.action === "redirect" &&
-    /consumer\/cn\/training\/course/.test(location.pathname)
-  ) {
-    var iframe = document.querySelector("iframe");
-    window.open(iframe.src);
-  } else if (request.action === "navigator") {
+  if (request.action === "navigator") {
     // 显隐各功能按键
     toggleActor();
   } else if (request.action === "ruler") {
