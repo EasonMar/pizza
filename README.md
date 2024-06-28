@@ -63,3 +63,4 @@ A tool to cut a long web page into short images as you wish, especially applied 
 - 可添加、删除参考线
 - 不均匀调整模式（可随时切换）
 - 增加垂直参考线：水平截图区域可选择
+- 结果图片可以删除
