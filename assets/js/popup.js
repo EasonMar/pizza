@@ -8,6 +8,12 @@ function setValue(step, speed) {
   }
 }
 
+// popup已出现就 显示工具栏
+chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+  // 传给tab
+  chrome.tabs.sendMessage(tabs[0].id, { action: "tools" });
+});
+
 document.addEventListener("DOMContentLoaded", function () {
   chrome.tabs.query(
     { active: true, currentWindow: true },
@@ -60,7 +66,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   });
 
-  // 显示导航工具栏
+  // 显示、隐藏导航工具栏
   document.querySelector(".logo").addEventListener("click", function () {
     chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
       // 传给tab

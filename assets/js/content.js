@@ -116,9 +116,9 @@ function createNavigator() {
   const prevPage = nav.cloneNode(false);
   const navBottom = nav.cloneNode(false);
   navTop.style.top = "20px";
-  prevPage.style.top = "80px";
-  nextPage.style.top = "140px";
-  navBottom.style.top = "200px";
+  prevPage.style.top = "90px";
+  nextPage.style.top = "160px";
+  navBottom.style.top = "230px";
   navTop.innerText = "TOP";
   nextPage.innerText = "next";
   prevPage.innerText = "prev";
@@ -260,6 +260,11 @@ chrome.runtime.onMessage.addListener(async function (
     const ruler = document.querySelector(".addRuler");
     const step = ruler ? +ruler.getAttribute("Ydex") : 0;
     sendResponse([step, captureSpeed]);
+    return true;
+  } else if (request.action === "tools") {
+    // 创建导航等工具
+    createNavigator();
+    createRulerBtn();
     return true;
   }
 });
