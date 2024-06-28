@@ -210,8 +210,7 @@ function toggleActor() {
     const conf = nav.style.display === "block" ? "none" : "block";
     setDisplay(conf);
   } else {
-    createRulerBtn();
-    createNavigator();
+    createTools();
   }
 }
 
@@ -235,6 +234,32 @@ function createRulerBtn() {
   cruler.innerText = "放置参考线";
   appendBody(cruler);
   cruler.addEventListener("click", createBaseRuler);
+}
+
+function createTools() {
+  createRulerBtn();
+  createNavigator();
+  createModeBtn();
+}
+
+function createModeBtn() {
+  if (query(".modeSelect")) return false;
+
+  const $modeSelect = $(`<div class="modeSelect">
+    <label for="mode-select">截图模式
+      <select name="mode" id="mode-select">
+        <option value="evenly">均匀模式</option>
+        <option value="freely">自由模式</option>
+        <option value="afterward">后向模式</option>
+      </select>  
+    </label>
+  </div>`);
+
+  $("body").append($modeSelect);
+
+  $("#mode-select").on("change", function () {
+    adMode = $(this).val();
+  });
 }
 
 // 开始截图
@@ -288,8 +313,7 @@ chrome.runtime.onMessage.addListener(async function (
     // 创建参考线元素
     createBaseRuler();
     // 创建导航等工具
-    createNavigator();
-    createRulerBtn();
+    createTools();
     return true;
   } else if (request.action === "getPPTs") {
     getPPTs();
@@ -307,8 +331,7 @@ chrome.runtime.onMessage.addListener(async function (
     return true;
   } else if (request.action === "tools") {
     // 创建导航等工具
-    createNavigator();
-    createRulerBtn();
+    createTools();
     return true;
   }
 });
@@ -324,7 +347,8 @@ function setDisplay(conf) {
   const ruler = queryAll(".ruler");
   const confirm = query(".confirm");
   const cruler = query(".createRulerBtn");
-  [...nav, ...ruler, confirm, cruler].forEach((t) => {
+  const modeSelect = query(".modeSelect");
+  [...nav, ...ruler, confirm, cruler, modeSelect].forEach((t) => {
     if (t) {
       t.style.display = conf;
       t.style.visibility = mapConf[conf];
