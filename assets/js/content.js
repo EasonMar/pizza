@@ -138,7 +138,27 @@ function createAddRuler(baseRuler, step) {
           setRuler(baseRuler, newStep); // 设置新的step
           createAddRuler(baseRuler); // 重新绘制addRuler
         } else if (adMode === "afterward") {
-          // Todo- 按照给定的step, 对平移当前参考线后续的所有参考线...
+          const $addRuler = $(eu.target).parents(".ruler");
+          // 按照给定的step, 对平移当前参考线后续的所有参考线...
+          const BY = +$addRuler.attr("Ydex");
+
+          // ==== 微调其后的所有ruler ====
+          (function () {
+            // 找出所有的跟随者
+            const fellows = Array.from(
+              document.querySelectorAll(".addRuler")
+            ).filter((a) => {
+              const AY = +a.getAttribute("Ydex");
+              return AY > BY;
+            });
+
+            // 微调 --- 从被调整的ruler中，继续按照设定的 step 来调整 top 值
+            fellows.reduce((a, c) => {
+              const n = a + step;
+              setRuler(c, n);
+              return n;
+            }, BY);
+          })();
         }
       });
     });
@@ -155,6 +175,7 @@ function createAddRuler(baseRuler, step) {
       // 必须基于当前按钮的父级参考线元素进行操作
       const $Ruler = $(e.target).parents(".addRuler");
       const $addEle = $Ruler.clone(true, true);
+      $addEle.attr("index", +$addEle.attr("index") + 1); // 指数加一
       setRuler($addEle.get(0), +$Ruler.attr("Ydex") + 50);
       $Ruler.after($addEle);
     });
