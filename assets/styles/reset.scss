@@ -37,23 +37,22 @@ body {
   }
 
   .rulerBtn {
-    border: 2px solid white;
-    background-color: black;
-    border-radius: 4px;
-    padding: 4px;
-    margin-left: 15px;
-    cursor: pointer;
-    color: white;
-    transition: 0.1s;
-    &:hover {
-      background-color: white;
-      color: black;
-    }
-
-    &.drag {
-      position: absolute;
-      top: 0;
-      left: 45%;
+    position: absolute;
+    top: 0;
+    left: 45%;
+    span {
+      border: 2px solid white;
+      background-color: black;
+      border-radius: 4px;
+      padding: 4px;
+      margin-left: 15px;
+      cursor: pointer;
+      color: white;
+      transition: 0.1s;
+      &:hover {
+        background-color: white;
+        color: black;
+      }
     }
   }
 }

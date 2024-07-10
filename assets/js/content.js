@@ -43,9 +43,11 @@ function createBaseRuler() {
   baseRuler.className = "ruler baseRuler";
 
   // 添加子元素
-  const $drag = $(`<span class="rulerBtn drag">drag</span>`);
-  const $add = $(`<span class="rulerBtn add">add</span>`);
-  $(baseRuler).append($drag, $add);
+  $(`<div class="rulerBtn"><span class="drag">drag</span></div>`).appendTo(
+    $(baseRuler)
+  );
+
+  const $drag = $(baseRuler).find(".drag");
 
   // 将参考线添加到页面中
   appendBody(baseRuler);
@@ -100,9 +102,11 @@ function createAddRuler(baseRuler, step) {
     addRuler.setAttribute("index", rulerIndex);
     addRuler.className = "ruler addRuler";
 
-    // delbtn
-    const $delBtn = $(`<span class="rulerBtn del">del</span>`);
-    $(addRuler).append($delBtn);
+    // 添加delbtn
+    const $delBtn = $(`<span class="del">del</span>`);
+    const $addBtn = $(`<span class="add">add</span>`);
+    const $addRuler = $(addRuler);
+    $addRuler.find(".rulerBtn").prepend($addBtn, $delBtn);
 
     const newY = +addRuler.getAttribute("Ydex") + rulerStep; // 初始的 Ydex 来自于 baseRuler
     setRuler(addRuler, newY);
@@ -111,21 +115,24 @@ function createAddRuler(baseRuler, step) {
     // 后续应该增加配置：均分模式、非均分模式、windowReSize也要动态调整参考线位置...
 
     // drag event
-    const $dragEle = $(addRuler).find(".drag");
-    $dragEle.on("mousedown", (ed) => {
+
+    const $dragBtn = $addRuler.find(".drag");
+    $dragBtn.on("mousedown", (ed) => {
+      const $Ruler = $(ed.target).parents(".addRuler");
       const originY = ed.clientY;
-      const posY = ed.clientY - addRuler.offsetTop;
+      const posY = ed.clientY - $Ruler.offset().top;
       document.onmousemove = function (em) {
-        setRuler(addRuler, em.clientY - posY);
+        setRuler($Ruler.get(0), em.clientY - posY);
       };
 
-      $dragEle.on("mouseup", (eu) => {
+      // 必须基于当前按钮的父级参考线元素进行操作
+      $Ruler.find(".drag").on("mouseup", (eu) => {
         document.onmousemove = null;
 
         // 均匀模式下
         if (adMode === "evenly") {
           // 通过当前ruler的偏移量/当前ruler与baseRuler的间隔，计算出baseRuler的偏移量，即step的偏移量，直接修改step
-          const index = +addRuler.getAttribute("index") || 1; // 当前 addRuler 与 baseRuler 的间隔
+          const index = +$Ruler.attr("index") || 1; // 当前 addRuler 与 baseRuler 的间隔
           const stepDiff = (eu.clientY - originY) / index;
           const newStep = +baseRuler.getAttribute("Ydex") + stepDiff;
           setRuler(baseRuler, newStep); // 设置新的step
@@ -137,8 +144,20 @@ function createAddRuler(baseRuler, step) {
     });
 
     // del event
-    const $delEle = $(addRuler).find(".del");
-    $delEle.on("click", () => addRuler.remove());
+    $delBtn.on("click", (e) => {
+      // 必须基于当前按钮的父级参考线元素进行操作
+      const $Ruler = $(e.target).parents(".addRuler");
+      $Ruler.remove();
+    });
+
+    // add event
+    $addBtn.on("click", (e) => {
+      // 必须基于当前按钮的父级参考线元素进行操作
+      const $Ruler = $(e.target).parents(".addRuler");
+      const $addEle = $Ruler.clone(true, true);
+      setRuler($addEle.get(0), +$Ruler.attr("Ydex") + 50);
+      $Ruler.after($addEle);
+    });
 
     appendBody(addRuler);
     rulerStep += step;
