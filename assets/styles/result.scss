@@ -29,18 +29,44 @@
   padding: 20px 0 20px;
   display: flex;
   flex-wrap: wrap;
-  img {
-    object-fit: contain;
+  .imageBlock {
+    position: relative;
     transition: 0.2s;
     margin: 20px;
-    max-width: 300px;
+    width: 300px;
     cursor: pointer;
-    border-radius: 4px;
     &:hover {
       object-fit: contain;
       transform: scale(1.05);
       box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.5);
+      .del {
+        display: block;
+      }
     }
+  }
+  img {
+    display: block;
+    object-fit: contain;
+    border-radius: 4px;
+    width: 100%;
+  }
+
+  .del {
+    display: none;
+    position: absolute;
+    top: -15px;
+    right: -15px;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background-color: #131313;
+    color: #fff;
+    font-size: 18px;
+    text-align: center;
+    line-height: 30px;
+    cursor: pointer;
+    border: 2px solid white;
+    font-weight: bold;
   }
 }
 .display {
@@ -149,7 +175,8 @@
 .download,
 .close,
 .prev,
-.next {
+.next,
+.del {
   transition: 0.1s;
   &:hover {
     background-color: white;

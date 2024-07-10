@@ -7,6 +7,8 @@
   "scripts": {
     "dev": "rd /s/q localServe && mkdir localServe && fis3 server start --root ./localServe --port 1234 --type node & fis3 release -wL",
     "build": "rd /s/q dist && mkdir dist && fis3 release prod -d ./dist",
+    "dev:mac": "rm -rf localServe && mkdir localServe && fis3 server start --root ./localServe --port 1234 --type node & fis3 release -wL",
+    "build:mac": "rm -rf dist && mkdir dist && fis3 release prod -d ./dist",
     "clean": "fis3 release -c",
     "stop": "fis3 server stop"
   },

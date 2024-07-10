@@ -1,4 +1,4 @@
-const ppts = [];
+let ppts = [];
 let displayIndex = 0;
 let getDone = false;
 
@@ -64,7 +64,20 @@ function createImg(url, dIndex = 0) {
   img.setAttribute("alt", "result");
   img.setAttribute("dIndex", dIndex);
   img.addEventListener("click", () => displayImg(img));
-  return img;
+  const del = document.createElement("div");
+  del.className = "del";
+  del.innerText = "X";
+
+  const outer = document.createElement("div");
+  outer.className = "imageBlock";
+  outer.appendChild(img);
+  outer.appendChild(del);
+
+  del.addEventListener("click", () => {
+    ppts = ppts.filter((p) => p != url);
+    outer.remove();
+  });
+  return outer;
 }
 
 function displayImg(img) {
