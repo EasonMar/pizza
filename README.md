@@ -66,5 +66,6 @@ A tool to cut a long web page into short images as you wish, especially applied 
 - ~~base 参考线非首次放置，在其他模式下拖拽，也要遵循模式规则~~
 - 代码优化：统一编码风格、设计优化
 - 显示处理进度
+- ~~将各种功能按钮放到父级容器里统一处理...~~
 - 增加垂直参考线：水平截图区域可选择
 - 集成图片编辑功能

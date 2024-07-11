@@ -211,110 +211,93 @@ function createNavigator() {
   // 单例模式
   if (query(".navigator")) return false;
 
-  const nav = create("div");
-  nav.className = "navigator";
-  const navTop = nav.cloneNode(false);
-  const nextPage = nav.cloneNode(false);
-  const prevPage = nav.cloneNode(false);
-  const navBottom = nav.cloneNode(false);
-  navTop.style.top = "20px";
-  prevPage.style.top = "90px";
-  nextPage.style.top = "160px";
-  navBottom.style.top = "230px";
-  navTop.innerText = "TOP";
-  nextPage.innerText = "next";
-  prevPage.innerText = "prev";
-  navBottom.innerText = "BOT";
+  const $navigator = $(`
+    <div class="navigator">
+      <div class="top">TOP</div>
+      <div class="prev">prev</div>
+      <div class="next">next</div>
+      <div class="bottom">BOTT</div>
+    </div>`);
 
   // 添加点击事件
-  navTop.addEventListener("click", () => {
+  $navigator.find(".top").on("click", () => {
     window.scrollTo({
       top: 0,
       behavior: "smooth", // 可选的，使滚动平滑进行
     });
   });
-  nextPage.addEventListener("click", () => {
-    window.scrollTo({
-      top: document.documentElement.scrollTop + winH,
-      behavior: "smooth",
-    });
-  });
-  prevPage.addEventListener("click", () => {
+  $navigator.find(".prev").on("click", () => {
     window.scrollTo({
       top: document.documentElement.scrollTop - winH,
       behavior: "smooth",
     });
   });
-  navBottom.addEventListener("click", () => {
+  $navigator.find(".next").on("click", () => {
+    window.scrollTo({
+      top: document.documentElement.scrollTop + winH,
+      behavior: "smooth",
+    });
+  });
+  $navigator.find(".bottom").on("click", () => {
     window.scrollTo({ top: bodyHeight - winH, behavior: "smooth" });
   });
 
   // 添加到页面中
-  [navTop, nextPage, prevPage, navBottom].forEach((n) => appendBody(n));
+  $("body").append($navigator);
 
   // 进入编辑态 ---- 增加一些留白 方便最后滚动到底
   const htmldom = query("html");
   htmldom.style.paddingBottom = `${winH}px`;
-  htmldom.style.backgroundColor = `black`;
 }
 
-function toggleActor() {
-  // 已经创建了则不需要再创建...
-  let nav = query(".navigator");
-  if (nav) {
-    const conf = /hideFixed/.test(nav.className) ? "show" : "hide";
-    hideTool(conf);
-  } else {
-    createTools();
-  }
+function toggleFn() {
+  const nav = query(".navigator");
+  const conf = /hideFixed/.test(nav.className) ? "show" : "hide";
+  hideTool(conf);
 }
 
 function createConfirm() {
   // 单例模式
   if (query(".confirm")) return false;
-
-  const confirm = create("div");
-  confirm.className = "confirm";
-  confirm.innerText = "开始截图";
-  appendBody(confirm);
-  confirm.addEventListener("click", getPPTs);
+  const $confirm = $(`<div class="confirm">开始截图</div>`);
+  $(".PizzaUtils").prepend($confirm);
+  $confirm.on("click", getPPTs);
 }
 
-function createRulerBtn() {
+// 创建 截图模式select、放置参考线button
+function createUtils() {
   // 单例模式
-  if (query(".createRulerBtn")) return false;
+  if (query(".PizzaUtils")) return false;
 
-  const cruler = create("div");
-  cruler.className = "createRulerBtn";
-  cruler.innerText = "放置参考线";
-  appendBody(cruler);
-  cruler.addEventListener("click", createBaseRuler);
-}
+  const $pizzaTool = $(`
+    <div class="PizzaUtils">
+      <div class="modeSelect">
+        <label for="mode-select"
+          >截图模式
+          <select name="mode" id="mode-select">
+            <option value="evenly">均匀模式</option>
+            <option value="freely">自由模式</option>
+            <option value="afterward">后向模式</option>
+          </select>
+        </label>
+      </div>
+      <div class="createRuler">水平参考线</div>
+      <div class="createVRuler">垂直参考线</div>
+    </div>
+  `);
 
-function createTools() {
-  createRulerBtn();
-  createNavigator();
-  createModeBtn();
-}
-
-function createModeBtn() {
-  if (query(".modeSelect")) return false;
-
-  const $modeSelect = $(`<div class="modeSelect">
-    <label for="mode-select">截图模式
-      <select name="mode" id="mode-select">
-        <option value="evenly">均匀模式</option>
-        <option value="freely">自由模式</option>
-        <option value="afterward">后向模式</option>
-      </select>  
-    </label>
-  </div>`);
-
-  $("body").append($modeSelect);
-
-  $("#mode-select").on("change", function () {
+  $("body").append($pizzaTool);
+  $pizzaTool.find(".createRuler").on("click", createBaseRuler);
+  $pizzaTool.find(".createVRuler").on("click", () => {});
+  $pizzaTool.find("#mode-select").on("change", function () {
     adMode = $(this).val();
   });
+}
+
+// 工具初始化
+function utilsInit() {
+  createUtils();
+  createNavigator();
 }
 
 // 开始截图
@@ -364,12 +347,10 @@ chrome.runtime.onMessage.addListener(async function (
 ) {
   if (request.action === "navigator") {
     // 显隐各功能按键
-    toggleActor();
+    toggleFn();
   } else if (request.action === "ruler") {
     // 创建参考线元素
     createBaseRuler();
-    // 创建导航等工具
-    createTools();
     return true;
   } else if (request.action === "getPPTs") {
     getPPTs();
@@ -386,8 +367,8 @@ chrome.runtime.onMessage.addListener(async function (
     sendResponse([step, captureSpeed]);
     return true;
   } else if (request.action === "tools") {
-    // 创建导航等工具
-    createTools();
+    // 创建工具
+    utilsInit();
     return true;
   }
 });
@@ -395,12 +376,10 @@ chrome.runtime.onMessage.addListener(async function (
 // 设置工具元素的显示隐藏
 function hideTool(conf) {
   // NodeList 是一个类数组对象，并不直接支持像数组那样的 push 和 map 等方法
-  const nav = queryAll(".navigator");
   const ruler = queryAll(".ruler");
-  const confirm = query(".confirm");
-  const cruler = query(".createRulerBtn");
-  const modeSelect = query(".modeSelect");
-  [...nav, ...ruler, confirm, cruler, modeSelect].forEach((t) => {
+  const nav = query(".navigator");
+  const utils = query(".PizzaUtils");
+  [...ruler, nav, utils].forEach((t) => {
     t && hideFn($(t), conf);
   });
 }
