@@ -23,11 +23,11 @@ function create(tag) {
   return document.createElement(tag);
 }
 
-function docBind(action, fn) {
+function documentBind(action, fn) {
   document.addEventListener(action, fn);
 }
 
-function docUnbind(action, fn) {
+function documentUnbind(action, fn) {
   document.removeEventListener(action, fn);
 }
 
@@ -40,68 +40,57 @@ function createBaseRuler() {
   if (oldBaseRuler) oldBaseRuler.remove();
 
   // 创建基准参考线
-  const baseRuler = create("div");
-  baseRuler.className = "ruler baseRuler";
-
-  // 添加子元素
-  $(`<div class="rulerBtn"><span class="drag">drag</span></div>`).appendTo(
-    $(baseRuler)
-  );
-
-  const $drag = $(baseRuler).find(".drag");
+  const $baseRuler = $(`
+    <div class="PizzaRuler baseRuler">
+      <div class="rulerBtn"><span class="drag">drag</span></div>
+    </div>
+  `);
 
   // 将参考线添加到页面中
-  appendBody(baseRuler);
+  $("body").append($baseRuler);
+
+  const baseRuler = query(".baseRuler");
+  const $dragBtn = $baseRuler.find(".drag");
 
   // 监听鼠标移动事件，显示参考线在页面中的位置信息
   // Tips: 使用bind方法，显式地传递参数给处理函数, 这些参数会插入到调用新函数时传入的参数的前面
   const bindMove = move.bind(null, baseRuler);
-  docBind("mousemove", bindMove);
+  documentBind("mousemove", bindMove);
 
   // 将click事件绑定在baseRuler本身，解决点击页面中的“放置参考线”按钮导致卡死的问题...
-  baseRuler.addEventListener(
-    "click",
-    () => {
-      docUnbind("mousemove", bindMove);
+  $baseRuler.one("click", () => {
+    documentUnbind("mousemove", bindMove);
+    createAddRuler(baseRuler);
+    createConfirm();
 
-      createAddRuler(baseRuler);
-      createConfirm();
+    // 移动函数...
+    $dragBtn.on("mousedown", (ed) => {
+      const posY = ed.clientY - baseRuler.offsetTop;
+      document.onmousemove = function (em) {
+        setRuler(baseRuler, em.clientY - posY);
+      };
 
-      // 移动函数...
-      $drag.on("mousedown", (ed) => {
-        const posY = ed.clientY - baseRuler.offsetTop;
-        document.onmousemove = function (em) {
-          setRuler(baseRuler, em.clientY - posY);
-        };
-
-        // 给document添加一次性的 mouseUp 函数, 优化拖拽交互体验...
-        document.addEventListener(
-          "mouseup",
-          () => {
-            document.onmousemove = null;
-            // 自由模式下, 不用处理 addRuler
-            if (adMode !== "freely") {
-              createAddRuler(baseRuler);
-            }
-          },
-          { once: true }
-        );
-      });
-    },
-    { once: true } // listener 会在其被调用之后自动移除
-  );
+      // 给document添加一次性的 mouseUp 函数, 优化拖拽交互体验...
+      document.addEventListener(
+        "mouseup",
+        () => {
+          document.onmousemove = null;
+          // 自由模式下, 不用处理 addRuler
+          if (adMode !== "freely") {
+            createAddRuler(baseRuler);
+          }
+        },
+        { once: true }
+      );
+    });
+  });
 }
 
 function createAddRuler(baseRuler, step) {
   step = +(step || baseRuler.getAttribute("Ydex"));
 
   // 先删除旧的addRuler
-  (function deleteOldRuler() {
-    const addrulers = Array.from(queryAll(".addRuler"));
-    addrulers.forEach((adr) => {
-      document.body.removeChild(adr);
-    });
-  })();
+  $(".addRuler").remove();
 
   let rulerIndex = 0;
   let rulerStep = step;
@@ -110,7 +99,7 @@ function createAddRuler(baseRuler, step) {
   while (bodyHeight - rulerStep >= 30) {
     const addRuler = baseRuler.cloneNode(true);
     addRuler.setAttribute("index", rulerIndex);
-    addRuler.className = "ruler addRuler";
+    addRuler.className = "PizzaRuler addRuler";
 
     // 添加delbtn
     const $delBtn = $(`<span class="del">del</span>`);
@@ -122,7 +111,7 @@ function createAddRuler(baseRuler, step) {
     setRuler(addRuler, newY);
 
     // -------- Todo ---------
-    // 后续应该增加配置：均分模式、非均分模式、windowReSize也要动态调整参考线位置...
+    // windowReSize也要动态调整参考线位置...
 
     // drag event
 
@@ -151,7 +140,7 @@ function createAddRuler(baseRuler, step) {
             createAddRuler(baseRuler); // 重新绘制addRuler
           } else if (adMode === "afterward") {
             // 必须基于当前按钮的父级参考线元素进行操作
-            const $addRuler = $(eu.target).parents(".ruler");
+            const $addRuler = $(eu.target).parents(".PizzaRuler");
             // 按照给定的step, 对平移当前参考线后续的所有参考线...
             const BY = +$addRuler.attr("Ydex");
 
@@ -209,10 +198,10 @@ function setRuler(ruler, y) {
 
 function createNavigator() {
   // 单例模式
-  if (query(".navigator")) return false;
+  if (query(".PizzaNav")) return false;
 
   const $navigator = $(`
-    <div class="navigator">
+    <div class="PizzaNav">
       <div class="top">TOP</div>
       <div class="prev">prev</div>
       <div class="next">next</div>
@@ -251,7 +240,7 @@ function createNavigator() {
 }
 
 function toggleFn() {
-  const nav = query(".navigator");
+  const nav = query(".PizzaNav");
   const conf = /hideFixed/.test(nav.className) ? "show" : "hide";
   hideTool(conf);
 }
@@ -376,8 +365,8 @@ chrome.runtime.onMessage.addListener(async function (
 // 设置工具元素的显示隐藏
 function hideTool(conf) {
   // NodeList 是一个类数组对象，并不直接支持像数组那样的 push 和 map 等方法
-  const ruler = queryAll(".ruler");
-  const nav = query(".navigator");
+  const ruler = queryAll(".PizzaRuler");
+  const nav = query(".PizzaNav");
   const utils = query(".PizzaUtils");
   [...ruler, nav, utils].forEach((t) => {
     t && hideFn($(t), conf);
@@ -433,7 +422,7 @@ async function paintPPT(screenshots) {
   await setRatio(screenshots[0]);
 
   // 获取参考线数据 --- 转化为imageSize
-  const addRuler = Array.from(queryAll(".ruler"));
+  const addRuler = Array.from(queryAll(".PizzaRuler"));
   const YArr = addRuler.map((r) => {
     return imageSize(+r.getAttribute("Ydex")).toFixed(2);
   });
