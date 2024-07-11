@@ -1,18 +1,18 @@
-* {
+// 进入作业状态：移除滚动条、禁止用户选中
+.PizzaSpace {
   user-select: none;
   -moz-user-select: none; /* Firefox */
   -moz-user-drag: none;
   -webkit-user-drag: none; /* Safari 和 Chrome */
   user-drag: none;
-}
 
-// 移除滚动条
-body {
   scrollbar-width: none; /* Firefox */
-}
+  ::-webkit-scrollbar {
+    display: none; /* Safari, Chrome等 */
+  }
 
-::-webkit-scrollbar {
-  display: none; /* Safari, Chrome等 */
+  // 增加一屏留白 方便截图滚动到底
+  padding-bottom: 100vh;
 }
 
 .PizzaRuler {

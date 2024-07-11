@@ -70,7 +70,7 @@ document.addEventListener("DOMContentLoaded", function () {
   document.querySelector(".logo").addEventListener("click", function () {
     chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
       // 传给tab
-      chrome.tabs.sendMessage(tabs[0].id, { action: "navigator" });
+      chrome.tabs.sendMessage(tabs[0].id, { action: "shiftState" });
     });
   });
 

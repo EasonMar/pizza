@@ -234,15 +234,19 @@ function createNavigator() {
   // 添加到页面中
   $("body").append($navigator);
 
-  // 进入编辑态 ---- 增加一些留白 方便最后滚动到底
-  const htmldom = query("html");
-  htmldom.style.paddingBottom = `${winH}px`;
+  // // 进入编辑态
+  $("html").addClass("PizzaSpace");
+
+  // 增加一些留白 方便最后滚动到底
+  // const htmldom = query("html");
+  // htmldom.style.paddingBottom = `${winH}px`;
 }
 
-function toggleFn() {
+function shiftState() {
   const nav = query(".PizzaNav");
   const conf = /hideFixed/.test(nav.className) ? "show" : "hide";
   hideTool(conf);
+  $("html").toggleClass("PizzaSpace");
 }
 
 function createConfirm() {
@@ -334,12 +338,17 @@ chrome.runtime.onMessage.addListener(async function (
   sender,
   sendResponse
 ) {
-  if (request.action === "navigator") {
-    // 显隐各功能按键
-    toggleFn();
+  if (request.action === "shiftState") {
+    // 切换页面显示状态
+    shiftState();
   } else if (request.action === "ruler") {
     // 创建参考线元素
     createBaseRuler();
+
+    // 如果此时不在作业状态, 则需要重新开启作业状态
+    if (!query(".PizzaSpace")) {
+      shiftState();
+    }
     return true;
   } else if (request.action === "getPPTs") {
     getPPTs();

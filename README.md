@@ -67,5 +67,6 @@ A tool to cut a long web page into short images as you wish, especially applied 
 - 代码优化：统一编码风格、设计优化
 - 显示处理进度
 - ~~将各种功能按钮放到父级容器里统一处理...~~
+- ~~进入作业状态之前，不应该更改页面的任何东西（样式啥的都不改）\toggle 能选择进入-退出作业状态~~
 - 增加垂直参考线：水平截图区域可选择
 - 集成图片编辑功能
