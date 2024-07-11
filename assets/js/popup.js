@@ -60,7 +60,7 @@ document.addEventListener("DOMContentLoaded", function () {
     if (!step) return alert("请先放置参考线！");
     chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
       chrome.tabs.sendMessage(tabs[0].id, {
-        action: "getPPTs",
+        action: "getPizza",
         step,
       });
     });

@@ -250,7 +250,7 @@ function createConfirm() {
   if (query(".confirm")) return false;
   const $confirm = $(`<div class="confirm">开始截图</div>`);
   $(".PizzaUtils").prepend($confirm);
-  $confirm.on("click", getPPTs);
+  $confirm.on("click", getPizza);
 }
 
 // 创建 截图模式select、放置参考线button
@@ -290,7 +290,7 @@ function utilsInit() {
 }
 
 // 开始截图
-async function getPPTs() {
+async function getPizza() {
   document.documentElement.scrollTop = 0; // 回到最初的地方
 
   // 触发截图操作:
@@ -346,8 +346,8 @@ chrome.runtime.onMessage.addListener(async function (
     createBaseRuler();
 
     return true;
-  } else if (request.action === "getPPTs") {
-    getPPTs();
+  } else if (request.action === "getPizza") {
+    getPizza();
     return true;
   } else if (request.action === "modify") {
     setRuler(baseRuler, request.step); // 变更baseRuler
