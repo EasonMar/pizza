@@ -337,13 +337,14 @@ chrome.runtime.onMessage.addListener(async function (
     // 切换页面显示状态
     shiftState();
   } else if (request.action === "ruler") {
-    // 创建参考线元素
-    createBaseRuler();
-
     // 如果此时不在作业状态, 则需要重新开启作业状态
     if (!query(".PizzaSpace")) {
       shiftState();
     }
+
+    // 创建参考线元素
+    createBaseRuler();
+
     return true;
   } else if (request.action === "getPPTs") {
     getPPTs();
