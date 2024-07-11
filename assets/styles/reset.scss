@@ -17,11 +17,11 @@
 
 .PizzaRuler {
   position: absolute;
-  top: 0;
+  top: 30%;
   left: 0;
   z-index: 9999;
   width: 100%;
-  height: 1px;
+  height: 0;
   border-top: 3px dashed red;
 
   &.addRuler {
@@ -31,9 +31,12 @@
 
   .rulerBtn {
     position: absolute;
-    top: -10px;
-    left: 45%;
+    top: 0;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
     span {
+      display: block;
       border: 2px solid white;
       background-color: black;
       border-radius: 4px;
@@ -41,10 +44,32 @@
       margin-left: 15px;
       cursor: pointer;
       color: white;
+      text-align: center;
       transition: 0.1s;
       &:hover {
         background-color: white;
         color: black;
+      }
+    }
+  }
+
+  // 垂直参考线
+  &.vRuler {
+    position: fixed;
+    top: 0;
+    left: 50%;
+    width: 0;
+    height: 100vh;
+    border-left: 3px dashed yellow;
+
+    .rulerBtn {
+      top: 50%;
+      left: 0;
+      transform: translate(-50%, -50%);
+      flex-direction: column;
+      span {
+        margin-left: 0;
+        margin-bottom: 15px;
       }
     }
   }

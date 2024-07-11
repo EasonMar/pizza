@@ -180,7 +180,7 @@ function createAddRuler(baseRuler, step) {
       const $Ruler = $(e.target).parents(".addRuler");
       const $addEle = $Ruler.clone(true, true);
       $addEle.attr("index", +$addEle.attr("index") + 1); // 指数加一
-      setRuler($addEle.get(0), +$Ruler.attr("Ydex") + 50);
+      setRuler($addEle.get(0), +$Ruler.attr("Ydex") + 150);
       $Ruler.after($addEle);
     });
 
@@ -194,6 +194,75 @@ function setRuler(ruler, y) {
   y = y.toFixed(2);
   ruler.style.top = y + "px";
   ruler.setAttribute("Ydex", y);
+}
+
+function createVRuler() {
+  // 单例模式
+  if (query(".vRuler")) return false;
+
+  // 创建垂直参考线
+  const $vRuler = $(`
+    <div class="PizzaRuler vRuler">
+      <div class="rulerBtn">
+        <span class="del">del</span>
+        <span class="add">add</span>
+        <span class="drag">drag</span>
+      </div>
+    </div>
+  `);
+
+  // 将参考线添加到页面中
+  $("body").append($vRuler);
+
+  const vRuler = query(".vRuler");
+  const $delBtn = $vRuler.find(".del");
+  const $addBtn = $vRuler.find(".add");
+  const $dragBtn = $vRuler.find(".drag");
+
+  const bindVMove = vMove.bind(null, vRuler);
+  documentBind("mousemove", bindVMove);
+
+  $vRuler.one("click", () => {
+    documentUnbind("mousemove", bindVMove);
+
+    $dragBtn.on("mousedown", (ed) => {
+      const $Ruler = $(ed.target).parents(".vRuler");
+      const vRuler = $Ruler.get(0);
+      const posX = ed.clientX - vRuler.offsetLeft;
+      document.onmousemove = function (em) {
+        setVRuler(vRuler, em.clientX - posX);
+      };
+      document.addEventListener(
+        "mouseup",
+        () => {
+          document.onmousemove = null;
+        },
+        { once: true }
+      );
+    });
+
+    // del event
+    $delBtn.on("click", (e) => {
+      // 必须基于当前按钮的父级参考线元素进行操作
+      const $Ruler = $(e.target).parents(".vRuler");
+      $Ruler.remove();
+    });
+
+    // add event
+    $addBtn.on("click", (e) => {
+      // 必须基于当前按钮的父级参考线元素进行操作
+      const $Ruler = $(e.target).parents(".vRuler");
+      const $addEle = $Ruler.clone(true, true);
+      setVRuler($addEle.get(0), +$Ruler.attr("Xdex") + 150);
+      $Ruler.after($addEle);
+    });
+  });
+}
+
+function setVRuler(ruler, x) {
+  x = x.toFixed(2);
+  ruler.style.left = x + "px";
+  ruler.setAttribute("Xdex", x);
 }
 
 function createNavigator() {
@@ -262,11 +331,11 @@ function createUtils() {
     <div class="PizzaUtils">
       <div class="modeSelect">
         <label for="mode-select"
-          >截图模式
+          >模式
           <select name="mode" id="mode-select">
-            <option value="evenly">均匀模式</option>
-            <option value="freely">自由模式</option>
-            <option value="afterward">后向模式</option>
+            <option value="evenly">均匀</option>
+            <option value="freely">自由</option>
+            <option value="afterward">后向</option>
           </select>
         </label>
       </div>
@@ -277,7 +346,7 @@ function createUtils() {
 
   $("body").append($pizzaTool);
   $pizzaTool.find(".createRuler").on("click", createBaseRuler);
-  $pizzaTool.find(".createVRuler").on("click", () => {});
+  $pizzaTool.find(".createVRuler").on("click", createVRuler);
   $pizzaTool.find("#mode-select").on("change", function () {
     adMode = $(this).val();
   });
@@ -313,19 +382,23 @@ async function getPizza() {
   await chrome.runtime.sendMessage({ action: "showPPT" });
 }
 
-function move(baseRuler, event) {
+function move(ruler, event) {
   // 获取当前页面垂直滚动的像素数
   // window.pageYOffset：大多数现代浏览器支持的属性，返回文档在垂直方向已滚动的像素值。
   // document.documentElement.scrollTop：在一些古老的浏览器中可用，返回文档在垂直方向已滚动的像素值。
   const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
   y = event.clientY + scrollTop;
-  x = event.clientX;
 
   const action = "ruler";
-  setRuler(baseRuler, y);
+  setRuler(ruler, y);
 
   // 更新弹出页面中的位置信息
   chrome.runtime.sendMessage({ action, step: y });
+}
+
+function vMove(ruler, event) {
+  x = event.clientX;
+  setVRuler(ruler, x);
 }
 
 chrome.runtime.onMessage.addListener(async function (
