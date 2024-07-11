@@ -31,9 +31,12 @@
   flex-wrap: wrap;
   .imageBlock {
     position: relative;
+    border-radius: 4px;
     transition: 0.2s;
     margin: 20px;
     width: 300px;
+    display: flex;
+    justify-content: center;
     cursor: pointer;
     &:hover {
       object-fit: contain;

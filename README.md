@@ -61,6 +61,7 @@ A tool to cut a long web page into short images as you wish, especially applied 
 - ~~可添加、删除参考线~~
 - ~~不均匀调整模式（可随时切换）：完成“后向等距”的分割逻辑 --- 当前参考线之后按间距平移，之前的保持不动~~
 - ~~结果图片可以删除~~
+- ~~隐藏页面中原有的 fixed 的元素~~
 - 显示处理进度
 - 增加垂直参考线：水平截图区域可选择
 - 集成图片编辑功能

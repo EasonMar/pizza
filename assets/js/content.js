@@ -9,6 +9,7 @@ let ratio = 1; // 截图尺寸与视窗尺寸的转换比例 image.width / winW;
 let winHS = winH; // 转换比例后的窗口内容高度
 let winWS = winW; // 转换比例后窗口内容宽度
 let adMode = "evenly"; // evenly: 均匀模式、afterward: 后向调整模式、freely: 自由调整模式
+let originFixedEles = []; // 页面中原有的fixed元素
 
 function query(query) {
   return document.querySelector(query);
@@ -309,6 +310,7 @@ async function getPPTs() {
   // 触发截图操作:
   // 1.不必要的元素设置不显示 - 2.scroll & captrue - 3.pain PPT - 4.showresult
   setDisplay("none");
+  setFixedElement("hide");
 
   // 2.scroll & captrue
   const screenshots = await scrollToCaptrue();
@@ -434,6 +436,7 @@ async function scrollToCaptrue() {
   window.scrollTo({ top: 0, behavior: "smooth" });
 
   setDisplay("block"); // 重新进入编辑态...
+  setFixedElement("show");
 
   return screenshots;
 }
@@ -543,4 +546,23 @@ function sleep(t) {
   return new Promise((res) => {
     setTimeout(res, t);
   });
+}
+
++(function getFixedElement() {
+  // 选择所有具有 position: fixed 样式的元素
+  originFixedEles = $("*").filter(function () {
+    return $(this).css("position") === "fixed";
+  });
+})();
+
+function setFixedElement(conf) {
+  if (conf === "hide") {
+    originFixedEles.map((i, f) => {
+      $(f).addClass("hideFixed");
+    });
+  } else {
+    originFixedEles.map((i, f) => {
+      $(f).removeClass("hideFixed");
+    });
+  }
 }
