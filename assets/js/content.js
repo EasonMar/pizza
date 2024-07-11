@@ -262,8 +262,8 @@ function toggleActor() {
   // 已经创建了则不需要再创建...
   let nav = query(".navigator");
   if (nav) {
-    const conf = nav.style.display === "block" ? "none" : "block";
-    setDisplay(conf);
+    const conf = /hideFixed/.test(nav.className) ? "show" : "hide";
+    hideTool(conf);
   } else {
     createTools();
   }
@@ -323,7 +323,7 @@ async function getPPTs() {
 
   // 触发截图操作:
   // 1.不必要的元素设置不显示 - 2.scroll & captrue - 3.pain PPT - 4.showresult
-  setDisplay("none");
+  hideTool("hide");
   setFixedElement("hide");
 
   // 2.scroll & captrue
@@ -393,11 +393,7 @@ chrome.runtime.onMessage.addListener(async function (
 });
 
 // 设置工具元素的显示隐藏
-function setDisplay(conf) {
-  const mapConf = {
-    block: "visible",
-    none: "hidden",
-  };
+function hideTool(conf) {
   // NodeList 是一个类数组对象，并不直接支持像数组那样的 push 和 map 等方法
   const nav = queryAll(".navigator");
   const ruler = queryAll(".ruler");
@@ -405,10 +401,7 @@ function setDisplay(conf) {
   const cruler = query(".createRulerBtn");
   const modeSelect = query(".modeSelect");
   [...nav, ...ruler, confirm, cruler, modeSelect].forEach((t) => {
-    if (t) {
-      t.style.display = conf;
-      t.style.visibility = mapConf[conf];
-    }
+    t && hideFn($(t), conf);
   });
 }
 
@@ -449,7 +442,7 @@ async function scrollToCaptrue() {
 
   window.scrollTo({ top: 0, behavior: "smooth" });
 
-  setDisplay("block"); // 重新进入编辑态...
+  hideTool("show"); // 重新进入编辑态...
   setFixedElement("show");
 
   return screenshots;
@@ -572,13 +565,13 @@ function sleep(t) {
 
 // 显示隐藏 页面中原有的fixed元素
 function setFixedElement(conf) {
-  if (conf === "hide") {
-    originFixedEles.map(function () {
-      $(this).addClass("hideFixed");
-    });
-  } else {
-    originFixedEles.map(function () {
-      $(this).removeClass("hideFixed");
-    });
-  }
+  originFixedEles.map(function () {
+    hideFn($(this), conf);
+  });
+}
+
+// 隐藏函数
+function hideFn($obj, conf) {
+  const method = conf === "hide" ? "addClass" : "removeClass";
+  $obj[method]("hideFixed");
 }
