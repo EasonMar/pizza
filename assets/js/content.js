@@ -234,18 +234,14 @@ function createNavigator() {
   // 添加到页面中
   $("body").append($navigator);
 
-  // // 进入编辑态
+  // 进入编辑态
   $("html").addClass("PizzaSpace");
-
-  // 增加一些留白 方便最后滚动到底
-  // const htmldom = query("html");
-  // htmldom.style.paddingBottom = `${winH}px`;
+  hideFixedElement(true);
 }
 
 function shiftState() {
-  const nav = query(".PizzaNav");
-  const conf = /hideFixed/.test(nav.className) ? "show" : "hide";
-  hideTool(conf);
+  hideTool();
+  hideFixedElement();
   $("html").toggleClass("PizzaSpace");
 }
 
@@ -299,8 +295,7 @@ async function getPPTs() {
 
   // 触发截图操作:
   // 1.不必要的元素设置不显示 - 2.scroll & captrue - 3.pain PPT - 4.showresult
-  hideTool("hide");
-  setFixedElement("hide");
+  hideTool(true);
 
   // 2.scroll & captrue
   const screenshots = await scrollToCaptrue();
@@ -374,12 +369,8 @@ chrome.runtime.onMessage.addListener(async function (
 // 设置工具元素的显示隐藏
 function hideTool(conf) {
   // NodeList 是一个类数组对象，并不直接支持像数组那样的 push 和 map 等方法
-  const ruler = queryAll(".PizzaRuler");
-  const nav = query(".PizzaNav");
-  const utils = query(".PizzaUtils");
-  [...ruler, nav, utils].forEach((t) => {
-    t && hideFn($(t), conf);
-  });
+  const $target = $(".PizzaRuler,.PizzaNav,.PizzaUtils");
+  $target.toggleClass("hideFixed", conf);
 }
 
 async function scrollToCaptrue() {
@@ -419,8 +410,8 @@ async function scrollToCaptrue() {
 
   window.scrollTo({ top: 0, behavior: "smooth" });
 
-  hideTool("show"); // 重新进入编辑态...
-  setFixedElement("show");
+  // 重新进入编辑态...
+  hideTool(false);
 
   return screenshots;
 }
@@ -541,14 +532,6 @@ function sleep(t) {
 })();
 
 // 显示隐藏 页面中原有的fixed元素
-function setFixedElement(conf) {
-  originFixedEles.map(function () {
-    hideFn($(this), conf);
-  });
-}
-
-// 隐藏函数
-function hideFn($obj, conf) {
-  const method = conf === "hide" ? "addClass" : "removeClass";
-  $obj[method]("hideFixed");
+function hideFixedElement(conf) {
+  originFixedEles.toggleClass("hideFixed", conf);
 }
