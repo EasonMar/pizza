@@ -73,10 +73,19 @@ function createBaseRuler() {
         document.onmousemove = function (em) {
           setRuler(baseRuler, em.clientY - posY);
         };
-        $drag.on("mouseup", () => {
-          document.onmousemove = null;
-          createAddRuler(baseRuler);
-        });
+
+        // 给document添加一次性的 mouseUp 函数, 优化拖拽交互体验...
+        document.addEventListener(
+          "mouseup",
+          () => {
+            document.onmousemove = null;
+            // 自由模式下, 不用处理 addRuler
+            if (adMode !== "freely") {
+              createAddRuler(baseRuler);
+            }
+          },
+          { once: true }
+        );
       });
     },
     { once: true } // listener 会在其被调用之后自动移除
@@ -126,42 +135,47 @@ function createAddRuler(baseRuler, step) {
         setRuler($Ruler.get(0), em.clientY - posY);
       };
 
-      // 必须基于当前按钮的父级参考线元素进行操作
-      $Ruler.find(".drag").on("mouseup", (eu) => {
-        document.onmousemove = null;
+      // 给document添加一次性的 mouseUp 函数, 优化拖拽交互体验...
+      document.addEventListener(
+        "mouseup",
+        (eu) => {
+          document.onmousemove = null;
 
-        // 均匀模式下
-        if (adMode === "evenly") {
-          // 通过当前ruler的偏移量/当前ruler与baseRuler的间隔，计算出baseRuler的偏移量，即step的偏移量，直接修改step
-          const index = +$Ruler.attr("index") || 1; // 当前 addRuler 与 baseRuler 的间隔
-          const stepDiff = (eu.clientY - originY) / index;
-          const newStep = +baseRuler.getAttribute("Ydex") + stepDiff;
-          setRuler(baseRuler, newStep); // 设置新的step
-          createAddRuler(baseRuler); // 重新绘制addRuler
-        } else if (adMode === "afterward") {
-          const $addRuler = $(eu.target).parents(".ruler");
-          // 按照给定的step, 对平移当前参考线后续的所有参考线...
-          const BY = +$addRuler.attr("Ydex");
+          // 均匀模式下
+          if (adMode === "evenly") {
+            // 通过当前ruler的偏移量/当前ruler与baseRuler的间隔，计算出baseRuler的偏移量，即step的偏移量，直接修改step
+            const index = +$Ruler.attr("index") || 1; // 当前 addRuler 与 baseRuler 的间隔
+            const stepDiff = (eu.clientY - originY) / index;
+            const newStep = +baseRuler.getAttribute("Ydex") + stepDiff;
+            setRuler(baseRuler, newStep); // 设置新的step
+            createAddRuler(baseRuler); // 重新绘制addRuler
+          } else if (adMode === "afterward") {
+            // 必须基于当前按钮的父级参考线元素进行操作
+            const $addRuler = $(eu.target).parents(".ruler");
+            // 按照给定的step, 对平移当前参考线后续的所有参考线...
+            const BY = +$addRuler.attr("Ydex");
 
-          // ==== 微调其后的所有ruler ====
-          (function () {
-            // 找出所有的跟随者
-            const fellows = Array.from(
-              document.querySelectorAll(".addRuler")
-            ).filter((a) => {
-              const AY = +a.getAttribute("Ydex");
-              return AY > BY;
-            });
+            // ==== 微调其后的所有ruler ====
+            (function () {
+              // 找出所有的跟随者
+              const fellows = Array.from(
+                document.querySelectorAll(".addRuler")
+              ).filter((a) => {
+                const AY = +a.getAttribute("Ydex");
+                return AY > BY;
+              });
 
-            // 微调 --- 从被调整的ruler中，继续按照设定的 step 来调整 top 值
-            fellows.reduce((a, c) => {
-              const n = a + step;
-              setRuler(c, n);
-              return n;
-            }, BY);
-          })();
-        }
-      });
+              // 微调 --- 从被调整的ruler中，继续按照设定的 step 来调整 top 值
+              fellows.reduce((a, c) => {
+                const n = a + step;
+                setRuler(c, n);
+                return n;
+              }, BY);
+            })();
+          }
+        },
+        { once: true }
+      );
     });
 
     // del event
@@ -548,6 +562,7 @@ function sleep(t) {
   });
 }
 
+// 获取页面中原有的fixed元素
 +(function getFixedElement() {
   // 选择所有具有 position: fixed 样式的元素
   originFixedEles = $("*").filter(function () {
@@ -555,14 +570,15 @@ function sleep(t) {
   });
 })();
 
+// 显示隐藏 页面中原有的fixed元素
 function setFixedElement(conf) {
   if (conf === "hide") {
-    originFixedEles.map((i, f) => {
-      $(f).addClass("hideFixed");
+    originFixedEles.map(function () {
+      $(this).addClass("hideFixed");
     });
   } else {
-    originFixedEles.map((i, f) => {
-      $(f).removeClass("hideFixed");
+    originFixedEles.map(function () {
+      $(this).removeClass("hideFixed");
     });
   }
 }
