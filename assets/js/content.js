@@ -7,7 +7,8 @@ let winH = window.innerHeight; // 窗口内容高度
 let winW = window.innerWidth; // 窗口内容宽度
 let ratio = 1; // 截图尺寸与视窗尺寸的转换比例 image.width / winW;
 let winHS = winH; // 转换比例后的窗口内容高度
-let winWS = winW; // 转换比例后窗口内容宽度
+let pizzaBS = 0; // 转换比例后的水平绘制起点
+let pizzaWS = winW; // 转换比例后的绘制宽度
 let adMode = "evenly"; // evenly: 均匀模式、afterward: 后向调整模式、freely: 自由调整模式
 let originFixedEles = []; // 页面中原有的fixed元素
 
@@ -250,6 +251,8 @@ function createVRuler() {
 
     // add event
     $addBtn.on("click", (e) => {
+      if (queryAll(".vRuler").length > 1) return alert("最多支持2条垂直参考线");
+
       // 必须基于当前按钮的父级参考线元素进行操作
       const $Ruler = $(e.target).parents(".vRuler");
       const $addEle = $Ruler.clone(true, true);
@@ -496,7 +499,7 @@ async function makePizza(screenshots) {
   await setRatio(screenshots[0]);
 
   // 获取参考线数据 --- 转化为imageSize
-  const addRuler = Array.from(queryAll(".PizzaRuler"));
+  const addRuler = Array.from(queryAll("[ydex]")); // 筛选出具有ydex属性的水平参考线
   const YArr = addRuler.map((r) => {
     return imageSize(+r.getAttribute("Ydex")).toFixed(2);
   });
@@ -520,13 +523,23 @@ async function makePizza(screenshots) {
       const sy = curImg.height - remain;
       const sh = canH;
       // drawImage(image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight);
-      ctx.drawImage(curImg, 0, sy - 1, winWS, sh, 0, 0, winWS, sh); // sy - 1 微调截图指针起始位置, 优化绘图偏移问题
+      ctx.drawImage(curImg, pizzaBS, sy - 1, pizzaWS, sh, 0, 0, pizzaWS, sh); // sy - 1 微调截图指针起始位置, 优化绘图偏移问题
       remain -= sh;
       // handled += sh; // 当前canvas已经画完, 没有必要处理canvas指针了...
     } else if (remain > 0) {
       const sy = curImg.height - remain;
       // drawImage(image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight);
-      ctx.drawImage(curImg, 0, sy - 1, winWS, remain, 0, 0, winWS, remain); // sy - 1 微调截图指针起始位置, 优化绘图偏移问题
+      ctx.drawImage(
+        curImg,
+        pizzaBS,
+        sy - 1,
+        pizzaWS,
+        remain,
+        0,
+        0,
+        pizzaWS,
+        remain
+      ); // sy - 1 微调截图指针起始位置, 优化绘图偏移问题
       handled += remain - 1; // 更新本批次已处理部分 —— "-1" 解决两图之间拼接绘制出现的白线问题....
       remain = 0; // 重置remain
     }
@@ -538,13 +551,23 @@ async function makePizza(screenshots) {
       // canvas还能容得下当前图片
       if (curImg.height <= canH - handled) {
         // drawImage(image, dx, dy, dWidth, dHeight);
-        ctx.drawImage(curImg, 0, handled, winWS, curImg.height);
+        ctx.drawImage(curImg, pizzaBS, handled, pizzaWS, curImg.height);
         handled += curImg.height;
       } else {
         // canvas已绘制满, 图片还有部分未绘制
         const paintH = canH - handled;
         // drawImage(image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight);
-        ctx.drawImage(curImg, 0, 0, winWS, paintH, 0, handled, winWS, paintH);
+        ctx.drawImage(
+          curImg,
+          pizzaBS,
+          0,
+          pizzaWS,
+          paintH,
+          0,
+          handled,
+          pizzaWS,
+          paintH
+        );
         remain = curImg.height - paintH;
       }
     }
@@ -557,12 +580,24 @@ async function makePizza(screenshots) {
   }
 }
 
-// 计算 图片/视窗 的尺寸比例
+// 计算 图片/视窗 的尺寸比例 --- 确定绘制宽度
 async function setRatio(dataUrl) {
   const image = await createImage(dataUrl);
   ratio = (image.width / winW).toFixed(2);
   winHS = winH * ratio;
-  winWS = winW * ratio;
+  pizzaWS = winW * ratio;
+
+  // 确定绘制宽度 --- 只绘制第一条垂直参考线以右、第二条参考线以左的区域....
+  // Todo - 垂直参考线可以增加一按钮, 标志绘制的是此参考线的坐左边还是右边...
+  const vRulers = Array.from(queryAll(".vRuler"));
+  const [a, b] = vRulers.map((v) => +$(v).attr("xdex"));
+  if (vRulers.length > 1) {
+    pizzaBS = Math.min(a, b) * ratio;
+    pizzaWS = Math.abs(a - b) * ratio;
+  } else if (vRulers.length > 0) {
+    pizzaBS = a * ratio;
+    pizzaWS = (winW - a) * ratio;
+  }
 }
 
 // 根据dataUrl生成image
@@ -586,7 +621,7 @@ function imageSize(winpx) {
 function createCanvas(canH) {
   const canvas = create("canvas");
   const ctx = canvas.getContext("2d");
-  canvas.width = winWS;
+  canvas.width = pizzaWS;
   canvas.height = canH;
   return [canvas, ctx];
 }
