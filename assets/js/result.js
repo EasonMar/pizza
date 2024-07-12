@@ -1,4 +1,4 @@
-let ppts = [];
+let pizzas = [];
 let displayIndex = 0;
 let getDone = false;
 
@@ -10,11 +10,11 @@ function showLoading(show) {
 // 下载
 const downloadAll = document.querySelector(".downloadAll");
 downloadAll.addEventListener("click", () => {
-  if (getDone) downloadZip(ppts);
+  if (getDone) downloadZip(pizzas);
 });
 const download = document.querySelector(".download");
 download.addEventListener("click", () => {
-  const index = ppts.indexOf(imgContainer.src) + 1;
+  const index = pizzas.indexOf(imgContainer.src) + 1;
   const name = `${index}.png`;
   clickLink(imgContainer.src, name);
 });
@@ -36,24 +36,24 @@ closeBtn.addEventListener("click", () => {
 prevBtn.addEventListener("click", (event) => {
   if (displayIndex > 0) {
     displayIndex--;
-    imgContainer.src = ppts[displayIndex];
+    imgContainer.src = pizzas[displayIndex];
   }
 });
 nextBtn.addEventListener("click", (event) => {
-  if (displayIndex < ppts.length - 1) {
+  if (displayIndex < pizzas.length - 1) {
     displayIndex++;
-    imgContainer.src = ppts[displayIndex];
+    imgContainer.src = pizzas[displayIndex];
   }
 });
 
 chrome.runtime?.onMessage.addListener(function (request, sender, sendResponse) {
   if (request.action === "resultInfo") {
     getDone = false;
-    const img = createImg(request.ppt, ppts.length);
+    const img = createImg(request.pizza, pizzas.length);
     resultPannel.appendChild(img);
-    ppts.push(request.ppt);
+    pizzas.push(request.pizza);
   } else if (request.action === "resultDone") {
-    getDone = true; // 完成PPT的接收
+    getDone = true; // 完成Picture的接收
     showLoading(false);
   }
 });
@@ -74,7 +74,7 @@ function createImg(url, dIndex = 0) {
   outer.appendChild(del);
 
   del.addEventListener("click", () => {
-    ppts = ppts.filter((p) => p != url);
+    pizzas = pizzas.filter((p) => p != url);
     outer.remove();
   });
   return outer;
@@ -86,12 +86,12 @@ function displayImg(img) {
   displayIndex = img.getAttribute("dIndex");
 }
 
-function downloadZip(ppts) {
+function downloadZip(pizzas) {
   showLoading(true);
   const zip = new JSZip();
-  ppts.forEach((ppt, idx) => {
-    if (!ppt) return true;
-    zip.file(`${idx + 1}.png`, ppt.split("base64,")[1], {
+  pizzas.forEach((piz, idx) => {
+    if (!piz) return true;
+    zip.file(`${idx + 1}.png`, piz.split("base64,")[1], {
       base64: true,
     });
   });

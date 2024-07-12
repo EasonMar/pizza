@@ -54,8 +54,8 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   });
 
-  // 提取PPT
-  document.getElementById("PPT").addEventListener("click", function () {
+  // 提取Picture
+  document.getElementById("Pizza").addEventListener("click", function () {
     const step = +stepValue.value;
     if (!step) return alert("请先放置参考线！");
     chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {

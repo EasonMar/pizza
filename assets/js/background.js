@@ -1,5 +1,5 @@
 // background.js
-let ppts = [];
+let pizzas = [];
 
 // 监听来自popup的消息
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
@@ -16,7 +16,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
       });
     return true; // 返回true以确保在sendResponse异步回调之前不会关闭消息通道
   } else if (request.action === "saveImg") {
-    ppts.push(request.dataUrl);
+    pizzas.push(request.dataUrl);
     sendResponse();
   } else if (request.action === "showResult") {
     const url = chrome.runtime.getURL("result.html");
@@ -28,16 +28,16 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
       });
     });
     sendResponse("done");
-  } else if (request.action === "showPPT") {
+  } else if (request.action === "showPizza") {
     // 先改变窗口状态: 最大化窗口状态
     chrome.windows.getCurrent({}, (w) => {
       chrome.windows.update(w.id, { state: "maximized" }, () => {
         const timer = setInterval(() => {
           chrome.runtime.sendMessage({
             action: "resultInfo",
-            ppt: ppts.shift(),
+            pizza: pizzas.shift(),
           });
-          if (ppts.length === 0) {
+          if (pizzas.length === 0) {
             clearInterval(timer);
             chrome.runtime.sendMessage({ action: "resultDone" });
           }

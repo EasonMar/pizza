@@ -363,7 +363,7 @@ async function getPizza() {
   document.documentElement.scrollTop = 0; // 回到最初的地方
 
   // 触发截图操作:
-  // 1.不必要的元素设置不显示 - 2.scroll & captrue - 3.pain PPT - 4.showresult
+  // 1.不必要的元素设置不显示 - 2.scroll & captrue - 3.pain picture - 4.showresult
   hideTool(true);
 
   // 2.scroll & captrue
@@ -375,11 +375,11 @@ async function getPizza() {
   // 3. redirect to result.html and loading
   await chrome.runtime.sendMessage({ action: "showResult" });
 
-  // 3.paint PPT
-  await paintPPT(screenshots);
+  // 3.paint Picture
+  await makePizza(screenshots);
 
   // 4.show result
-  await chrome.runtime.sendMessage({ action: "showPPT" });
+  await chrome.runtime.sendMessage({ action: "showPizza" });
 }
 
 function move(ruler, event) {
@@ -490,8 +490,8 @@ async function scrollToCaptrue() {
   return screenshots;
 }
 
-// 绘制ppt
-async function paintPPT(screenshots) {
+// 绘制图片
+async function makePizza(screenshots) {
   // 设置图片原始宽度与浏览器窗口宽度比例参数
   await setRatio(screenshots[0]);
 
@@ -508,7 +508,7 @@ async function paintPPT(screenshots) {
   for (const Ydex of YArr) {
     const canH = Ydex - prevYdex; // 图片高度 --- imageSize
 
-    // 计算需要几张截图才能塞满此ppt --- 向上取整...可获取需要的图片
+    // 计算需要几张截图才能塞满此picture --- 向上取整...可获取需要的图片
     const batchCount = Math.ceil((canH - remain) / winHS);
     const urls = screenshots.splice(0, batchCount); // 将图片截取出来, 并改变screenshots数组
     const [canv, ctx] = createCanvas(canH); // 创建canvas
