@@ -207,6 +207,7 @@ function createVRuler() {
       <div class="rulerBtn">
         <span class="del">del</span>
         <span class="add">add</span>
+        <span class="direction">|→</span>
         <span class="drag">drag</span>
       </div>
     </div>
@@ -247,6 +248,12 @@ function createVRuler() {
       // 必须基于当前按钮的父级参考线元素进行操作
       const $Ruler = $(e.target).parents(".vRuler");
       $Ruler.remove();
+
+      // 垂直参考线变回一条的时候，需要重新开启指向设置...
+      const $vRuler = $(".vRuler");
+      if ($vRuler.length > 0) {
+        $vRuler.find(".drag").before(`<span class="direction">|→</span>`);
+      }
     });
 
     // add event
@@ -255,10 +262,23 @@ function createVRuler() {
 
       // 必须基于当前按钮的父级参考线元素进行操作
       const $Ruler = $(e.target).parents(".vRuler");
+
+      // 两条垂直参考线时，不用考虑参考线的指向，永远只截取两条参考线之间的内容
+      $Ruler.find(".direction").remove();
+
       const $addEle = $Ruler.clone(true, true);
       setVRuler($addEle.get(0), +$Ruler.attr("Xdex") + 150);
       $Ruler.after($addEle);
     });
+  });
+
+  // direct按钮 通过 事件委托来实现...   TODO:其他按钮是不是也可以把事件委托给父元素....
+  $vRuler.on("click", ".direction", function () {
+    if ($(this).text() === "|→") {
+      $(this).text("→|");
+    } else {
+      $(this).text("|→");
+    }
   });
 }
 
@@ -595,8 +615,14 @@ async function setRatio(dataUrl) {
     pizzaBS = Math.min(a, b) * ratio;
     pizzaWS = Math.abs(a - b) * ratio;
   } else if (vRulers.length > 0) {
-    pizzaBS = a * ratio;
-    pizzaWS = (winW - a) * ratio;
+    // 确定垂直参考线指向：是截取参考线左边区域还是右边区域
+    const direction = $(".vRuler").find(".direction").text();
+    if (direction === "|→") {
+      pizzaBS = a * ratio;
+      pizzaWS = (winW - a) * ratio;
+    } else {
+      pizzaWS = a * ratio;
+    }
   }
 }
 

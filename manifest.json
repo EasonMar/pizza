@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Pizza",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "A tool to cut a long web page into short images as you wish, especially applied on web-based PPT",
   "permissions": ["activeTab", "tabs", "storage"],
   "background": {
